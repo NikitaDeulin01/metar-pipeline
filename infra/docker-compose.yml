@@ -1,0 +1,206 @@
+services:
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo_data:/data/db
+    networks:
+      - backend
+
+  # GUI для Mongo
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    container_name: mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    networks:
+      - backend
+
+  # Postgres
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  # GUI для Postgres
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  # Redis для Airflow
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  # Airflow Init
+  airflow-init:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db init && \
+        airflow users create \
+          --username ${AIRFLOW_ADMIN_USER} \
+          --password ${AIRFLOW_ADMIN_PASSWORD} \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email ${AIRFLOW_ADMIN_EMAIL}
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+      AIRFLOW__WEBSERVER__RBAC: ${AIRFLOW__WEBSERVER__RBAC}
+      AIRFLOW_UID: ${AIRFLOW_UID}
+      AIRFLOW_GID: ${AIRFLOW_GID}
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ..:/opt/metar-pipeline
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # Airflow Webserver
+  airflow-webserver:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: airflow-webserver
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+      AIRFLOW__WEBSERVER__RBAC: ${AIRFLOW__WEBSERVER__RBAC}
+      AIRFLOW_UID: ${AIRFLOW_UID}
+      AIRFLOW_GID: ${AIRFLOW_GID}
+      MONGO_URI: mongodb://mongo:27017
+      POSTGRES_HOST: postgres
+    command: webserver
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ..:/opt/metar-pipeline
+    networks:
+      - backend
+
+  # Airflow Scheduler
+  airflow-scheduler:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: airflow-scheduler
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+      AIRFLOW__WEBSERVER__RBAC: ${AIRFLOW__WEBSERVER__RBAC}
+      AIRFLOW_UID: ${AIRFLOW_UID}
+      AIRFLOW_GID: ${AIRFLOW_GID}
+      MONGO_URI: mongodb://mongo:27017
+      POSTGRES_HOST: postgres
+    command: scheduler
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ..:/opt/metar-pipeline
+    networks:
+      - backend
+
+  # Airflow Worker
+  airflow-worker:
+    image: apache/airflow:2.9.3-python3.11
+    container_name: airflow-worker
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+      AIRFLOW__WEBSERVER__RBAC: ${AIRFLOW__WEBSERVER__RBAC}
+      AIRFLOW_UID: ${AIRFLOW_UID}
+      AIRFLOW_GID: ${AIRFLOW_GID}
+      MONGO_URI: mongodb://mongo:27017
+      POSTGRES_HOST: postgres
+    command: celery worker
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ..:/opt/metar-pipeline
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

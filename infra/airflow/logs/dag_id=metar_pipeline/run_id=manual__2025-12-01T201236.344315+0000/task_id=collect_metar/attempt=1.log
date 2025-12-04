@@ -1,0 +1,25 @@
+[2025-12-01T20:12:37.264+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-12-01T20:12:37.304+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: metar_pipeline.collect_metar manual__2025-12-01T20:12:36.344315+00:00 [queued]>
+[2025-12-01T20:12:37.310+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: metar_pipeline.collect_metar manual__2025-12-01T20:12:36.344315+00:00 [queued]>
+[2025-12-01T20:12:37.311+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 2
+[2025-12-01T20:12:37.324+0000] {taskinstance.py:2330} INFO - Executing <Task(BashOperator): collect_metar> on 2025-12-01 20:12:36.344315+00:00
+[2025-12-01T20:12:37.332+0000] {standard_task_runner.py:64} INFO - Started process 99 to run task
+[2025-12-01T20:12:37.336+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'metar_pipeline', 'collect_metar', 'manual__2025-12-01T20:12:36.344315+00:00', '--job-id', '20', '--raw', '--subdir', 'DAGS_FOLDER/metar_pipeline_dag.py', '--cfg-path', '/tmp/tmpdvuudalm']
+[2025-12-01T20:12:37.338+0000] {standard_task_runner.py:91} INFO - Job 20: Subtask collect_metar
+[2025-12-01T20:12:37.443+0000] {task_command.py:426} INFO - Running <TaskInstance: metar_pipeline.collect_metar manual__2025-12-01T20:12:36.344315+00:00 [running]> on host 9f9c41ae27c2
+[2025-12-01T20:12:37.620+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='metar_pipeline' AIRFLOW_CTX_TASK_ID='collect_metar' AIRFLOW_CTX_EXECUTION_DATE='2025-12-01T20:12:36.344315+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-12-01T20:12:36.344315+00:00'
+[2025-12-01T20:12:37.621+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-12-01T20:12:37.633+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-12-01T20:12:37.634+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'pip install --quiet pymongo python-dotenv requests psycopg2-binary && export PYTHONPATH="/opt/metar-pipeline"; python /opt/metar-pipeline/src/collector/main.py']
+[2025-12-01T20:12:37.647+0000] {subprocess.py:86} INFO - Output:
+[2025-12-01T20:12:38.653+0000] {subprocess.py:93} INFO - 
+[2025-12-01T20:12:38.653+0000] {subprocess.py:93} INFO - [notice] A new release of pip is available: 24.2 -> 25.3
+[2025-12-01T20:12:38.654+0000] {subprocess.py:93} INFO - [notice] To update, run: pip install --upgrade pip
+[2025-12-01T20:12:39.860+0000] {subprocess.py:93} INFO - Вставлено документов в Mongo: 18
+[2025-12-01T20:12:39.861+0000] {subprocess.py:93} INFO - Готово, сохранено 18 записей METAR в MongoDB.
+[2025-12-01T20:12:40.387+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-12-01T20:12:40.388+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-12-01T20:12:40.452+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=metar_pipeline, task_id=collect_metar, run_id=manual__2025-12-01T20:12:36.344315+00:00, execution_date=20251201T201236, start_date=20251201T201237, end_date=20251201T201240
+[2025-12-01T20:12:40.516+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2025-12-01T20:12:40.556+0000] {taskinstance.py:3503} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-12-01T20:12:40.560+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

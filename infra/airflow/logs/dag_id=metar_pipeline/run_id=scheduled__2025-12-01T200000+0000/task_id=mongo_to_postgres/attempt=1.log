@@ -1,0 +1,27 @@
+[2025-12-04T11:46:04.628+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-12-04T11:46:04.668+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: metar_pipeline.mongo_to_postgres scheduled__2025-12-01T20:00:00+00:00 [queued]>
+[2025-12-04T11:46:04.674+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: metar_pipeline.mongo_to_postgres scheduled__2025-12-01T20:00:00+00:00 [queued]>
+[2025-12-04T11:46:04.674+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 2
+[2025-12-04T11:46:04.688+0000] {taskinstance.py:2330} INFO - Executing <Task(BashOperator): mongo_to_postgres> on 2025-12-01 20:00:00+00:00
+[2025-12-04T11:46:04.694+0000] {standard_task_runner.py:64} INFO - Started process 100 to run task
+[2025-12-04T11:46:04.697+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'metar_pipeline', 'mongo_to_postgres', 'scheduled__2025-12-01T20:00:00+00:00', '--job-id', '30', '--raw', '--subdir', 'DAGS_FOLDER/metar_pipeline_dag.py', '--cfg-path', '/tmp/tmpy4ap0p6b']
+[2025-12-04T11:46:04.698+0000] {standard_task_runner.py:91} INFO - Job 30: Subtask mongo_to_postgres
+[2025-12-04T11:46:04.808+0000] {task_command.py:426} INFO - Running <TaskInstance: metar_pipeline.mongo_to_postgres scheduled__2025-12-01T20:00:00+00:00 [running]> on host 9f9c41ae27c2
+[2025-12-04T11:46:05.029+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='metar_pipeline' AIRFLOW_CTX_TASK_ID='mongo_to_postgres' AIRFLOW_CTX_EXECUTION_DATE='2025-12-01T20:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-12-01T20:00:00+00:00'
+[2025-12-04T11:46:05.030+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-12-04T11:46:05.045+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-12-04T11:46:05.047+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'pip install --quiet pymongo python-dotenv requests psycopg2-binary && export PYTHONPATH="/opt/metar-pipeline"; python /opt/metar-pipeline/src/etl/mongo_to_postgres.py']
+[2025-12-04T11:46:05.061+0000] {subprocess.py:86} INFO - Output:
+[2025-12-04T11:46:06.705+0000] {subprocess.py:93} INFO - 
+[2025-12-04T11:46:06.706+0000] {subprocess.py:93} INFO - [notice] A new release of pip is available: 24.2 -> 25.3
+[2025-12-04T11:46:06.706+0000] {subprocess.py:93} INFO - [notice] To update, run: pip install --upgrade pip
+[2025-12-04T11:46:07.560+0000] {subprocess.py:93} INFO - Прочитано из Mongo документов: 126
+[2025-12-04T11:46:07.561+0000] {subprocess.py:93} INFO - Подготовлено строк для вставки в Postgres: 126
+[2025-12-04T11:46:07.561+0000] {subprocess.py:93} INFO - Проверка / создание таблицы metar_observations выполнена.
+[2025-12-04T11:46:07.561+0000] {subprocess.py:93} INFO - Вставлено строк в Postgres: 126
+[2025-12-04T11:46:07.947+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-12-04T11:46:07.949+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-12-04T11:46:08.013+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=metar_pipeline, task_id=mongo_to_postgres, run_id=scheduled__2025-12-01T20:00:00+00:00, execution_date=20251201T200000, start_date=20251204T114604, end_date=20251204T114608
+[2025-12-04T11:46:08.078+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2025-12-04T11:46:08.113+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-12-04T11:46:08.117+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
