@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# venv
+.venv/
+env/
+
+# IDE
+.idea/
+
+# Airflow / infra runtime
+infra/airflow/logs/
+infra/mongo_data/
+infra/postgres_data/
+
+# dbt runtime
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/edr_target/
+edr_target/
+
+# dbt user stuff
+dbt/.user.yml
+dbt/package-lock.yml
+
+# env
+.env
