@@ -1,5 +1,6 @@
 import os
-from typing import List, Tuple, Any, Dict
+import json
+from typing import List, Dict, Any, Tuple
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -19,6 +20,9 @@ PG_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 PG_DB = os.getenv("POSTGRES_DB", "airflow")
 PG_USER = os.getenv("POSTGRES_USER", "airflow")
 PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "airflow")
+
+# Сырая таблица с JSON
+RAW_TABLE = "metar_raw_json"
 
 
 def get_mongo_docs() -> List[Dict[str, Any]]:
@@ -44,111 +48,80 @@ def get_pg_connection():
     return conn
 
 
-def ensure_table_exists(conn) -> None:
+def ensure_raw_table_exists(conn) -> None:
     """
-    Создаём таблицу metar_observations
+    Создаём сырую таблицу для JSON
+    id
+    payload
+    inserted_at
     """
-    create_table_sql = """
-    CREATE TABLE IF NOT EXISTS metar_observations (
-        id                  SERIAL PRIMARY KEY,
-        icao                TEXT NOT NULL,
-        observed            TIMESTAMPTZ,
-        flight_category     TEXT,
-        temperature_c       REAL,
-        dewpoint_c          REAL,
-        wind_dir_deg        REAL,
-        wind_speed_kt       REAL,
-        wind_gust_kt        REAL,
-        visibility_m        REAL,
-        barometer_hpa       REAL,
-        humidity_percent    REAL,
-        station_name        TEXT,
-        station_location    TEXT,
-        station_lon         DOUBLE PRECISION,
-        station_lat         DOUBLE PRECISION,
-        raw_text            TEXT,
-        inserted_at         TIMESTAMPTZ
+    create_table_sql = f"""
+    CREATE TABLE IF NOT EXISTS public.{RAW_TABLE} (
+        id          TEXT PRIMARY KEY,
+        payload     JSONB NOT NULL,
+        inserted_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
     """
     with conn.cursor() as cur:
         cur.execute(create_table_sql)
     conn.commit()
-    print("Проверка / создание таблицы metar_observations выполнена.")
+    # print(f"Проверка / создание таблицы public.{RAW_TABLE} выполнена.")
 
 
-def transform_docs_for_insert(docs: List[Dict[str, Any]]) -> List[Tuple]:
-    rows: List[Tuple] = []
+def transform_docs_for_insert(docs: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
+    """
+    Готовим данные к вставке: берём целиком документ и сериализуем его в JSON-строку.
+    """
+    rows: List[Tuple[str, str]] = []
 
     for d in docs:
-        row = (
-            d.get("icao"),
-            d.get("observed"),
-            d.get("flight_category"),
-            d.get("temperature_c"),
-            d.get("dewpoint_c"),
-            d.get("wind_dir_deg"),
-            d.get("wind_speed_kt"),
-            d.get("wind_gust_kt"),
-            d.get("visibility_m"),
-            d.get("barometer_hpa"),
-            d.get("humidity_percent"),
-            d.get("station_name"),
-            d.get("station_location"),
-            d.get("station_lon"),
-            d.get("station_lat"),
-            d.get("raw_text"),
-            d.get("inserted_at"),
-        )
-        rows.append(row)
+        doc_id = str(d.get("_id"))
 
-    print(f"Подготовлено строк для вставки в Postgres: {len(rows)}")
+        # Сериализуем весь документ в JSON.
+        payload_str = json.dumps(d, default=str)
+
+        rows.append((doc_id, payload_str))
+
+    # print(f"Подготовлено строк для вставки в Postgres (raw json): {len(rows)}")
     return rows
 
 
-def insert_into_postgres(conn, rows: List[Tuple]) -> None:
+def insert_into_postgres(conn, rows: List[Tuple[str, str]]) -> None:
     """
-    Вставка данных в Postgres через execute_values.
+    Вставка данных в Postgres в сырую таблицу (id + payload jsonb).
     """
     if not rows:
         print("Нет данных для вставки в Postgres.")
         return
 
-    insert_sql = """
-        INSERT INTO metar_observations (
-            icao,
-            observed,
-            flight_category,
-            temperature_c,
-            dewpoint_c,
-            wind_dir_deg,
-            wind_speed_kt,
-            wind_gust_kt,
-            visibility_m,
-            barometer_hpa,
-            humidity_percent,
-            station_name,
-            station_location,
-            station_lon,
-            station_lat,
-            raw_text,
-            inserted_at
+    insert_sql = f"""
+        INSERT INTO public.{RAW_TABLE} (
+            id,
+            payload
         )
-        VALUES %s;
+        VALUES %s
+        ON CONFLICT (id) DO UPDATE
+        SET payload = EXCLUDED.payload,
+            inserted_at = now()
+        ;
     """
 
     with conn.cursor() as cur:
         execute_values(cur, insert_sql, rows)
     conn.commit()
-    print(f"Вставлено строк в Postgres: {len(rows)}")
+    print(f"Вставлено/обновлено строк в Postgres (таблица {RAW_TABLE}): {len(rows)}")
 
 
 def run_el() -> None:
+    """
+    EL
+    """
     docs = get_mongo_docs()
     rows = transform_docs_for_insert(docs)
 
     conn = get_pg_connection()
     try:
-        ensure_table_exists(conn)
+        ensure_raw_table_exists(conn)
         insert_into_postgres(conn, rows)
     finally:
         conn.close()
