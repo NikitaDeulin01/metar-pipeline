@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: dw_daily_airport_metrics
+    description: "DWH модель с дневной агрегированной статистикой по METAR по аэропортам"
+    tags: ["dwh", "metar"]
+
+    columns:
+      - name: icao_date
+        description: "Суррогатный ключ: аэропорт + дата (формат ICAO_YYYYMMDD)"
+        tests:
+          - not_null
+          - unique
+
+      - name: icao
+        description: "Код аэропорта (ICAO)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_metar_observations')
+              field: icao
+
+      - name: observed_date
+        description: "Дата наблюдений (усечённая до дня)"
+        tests:
+          - not_null

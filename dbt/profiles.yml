@@ -1,0 +1,25 @@
+metar_profile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER','airflow') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD','airflow') }}"
+      dbname: "{{ env_var('POSTGRES_DB','airflow') }}"
+      schema: "{{ env_var('DBT_SCHEMA','analytics') }}"
+      threads: 4
+
+elementary:
+  target: default
+  outputs:
+    default:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: "{{ env_var('POSTGRES_USER','airflow') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD','airflow') }}"
+      dbname: "{{ env_var('POSTGRES_DB','airflow') }}"
+      schema: "analytics_elementary"
+      threads: 4
