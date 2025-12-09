@@ -48,7 +48,6 @@ with DAG(
         ),
     )
 
-    # Elementary report
     elementary_report = BashOperator(
         task_id="elementary_report",
         bash_command=(
