@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_metar_observations
+    description: "Staging model for METAR observations"
+    tags: ["staging", "metar"]
+
+    tests:
+      - elementary.schema_changes
+
+    columns:
+      - name: id
+        description: "ID"
+        tests:
+          - not_null
+          - unique
+          - elementary.column_anomalies
+
+      - name: icao
+        description: "ICAO code"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - UUEE
+                  - UUDD
+                  - UUWW
+                  - ULLI
+                  - URSS
+                  - USSS
+                  - UKFF
+                  - UNNT
+                  - URKK
+                  - UWUU
+                  - UWWW
+                  - UWKD
+                  - URRR
+                  - UNKL
+                  - URMM
+                  - UHWW
+                  - UHHH
+                  - UIII
+                  - USTR
+                  - UMKK
+          - elementary.column_anomalies
+
+      - name: observed
+        description: "Observation timestamp"
+        tests:
+          - not_null
+          - elementary.column_anomalies
+
+      - name: visibility_m
+        description: "Visibility in meters"
+        tests:
+          - not_null:
+              severity: warn
+          - elementary.column_anomalies:
+              severity: warn
+
+
+

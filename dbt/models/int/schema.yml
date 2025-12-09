@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: int_metar_latest
+    description: "Latest METAR observation per airport (one row per ICAO)"
+    tags: ["intermediate", "metar"]
+
+    columns:
+      - name: icao
+        description: "Airport ICAO code"
+        tests:
+          - not_null
+
+      - name: observed
+        description: "Latest observation timestamp per airport"
+        tests:
+          - not_null

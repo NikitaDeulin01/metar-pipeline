@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: ods_metar_latest
+    description: "ODS слой с последними METAR-наблюдениями по аэропортам"
+    tags: ["ods", "metar"]
+
+    columns:
+      - name: id
+        description: "Уникальный идентификатор наблюдения"
+        tests:
+          - not_null
+          - unique
+
+      - name: icao
+        description: "Идентификатор аэропорта (ICAO)"
+        tests:
+          - not_null
+
+      - name: observed
+        description: "Время наблюдения"
+        tests:
+          - not_null
