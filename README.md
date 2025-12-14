@@ -38,6 +38,7 @@ HTML Dashboard
 - pgAdmin: http://localhost:5050 (admin@admin.com / admin)
   
  ## Структура проекта
+```
 metar-pipeline/
 ├── src/
 │   ├── api/
@@ -80,4 +81,4 @@ metar-pipeline/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-
+```
