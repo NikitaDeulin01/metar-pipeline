@@ -2,15 +2,18 @@ version: 2
 
 models:
   - name: ods_metar_latest
-    description: "ODS слой с последними METAR-наблюдениями по аэропортам"
+    description: "ODS слой (история) с METAR-наблюдениями после очистки STG"
     tags: ["ods", "metar"]
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ["icao", "observed", "id"]
 
     columns:
       - name: id
-        description: "Уникальный идентификатор наблюдения"
+        description: "Идентификатор записи (Mongo ObjectId в виде строки)"
         tests:
           - not_null
-          - unique
 
       - name: icao
         description: "Идентификатор аэропорта (ICAO)"
