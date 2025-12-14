@@ -5,12 +5,12 @@
     unique_key='id',
     incremental_strategy='merge'
 ) }}
-
+    
 WITH raw AS (
     SELECT
         id,
         payload
-    FROM public.metar_raw_json
+    FROM {{ source('metar_raw', 'metar_raw_json') }}
     {% if is_incremental() %}
         WHERE (payload ->> 'observed')::timestamptz > (
             SELECT COALESCE(MAX(observed), '2000-01-01'::timestamptz)
@@ -18,6 +18,7 @@ WITH raw AS (
         )
     {% endif %}
 )
+
 
 SELECT
     id,
@@ -40,3 +41,4 @@ SELECT
     (payload ->> 'inserted_at')::timestamptz        AS inserted_at
 
 FROM raw
+

@@ -91,6 +91,8 @@ services:
           --lastname User \
           --role Admin \
           --email ${AIRFLOW_ADMIN_EMAIL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -132,6 +134,8 @@ services:
       AIRFLOW_GID: ${AIRFLOW_GID}
       MONGO_URI: mongodb://mongo:27017
       POSTGRES_HOST: postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: webserver
     ports:
       - "8080:8080"
@@ -163,6 +167,8 @@ services:
       AIRFLOW_GID: ${AIRFLOW_GID}
       MONGO_URI: mongodb://mongo:27017
       POSTGRES_HOST: postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: scheduler
     volumes:
       - ./airflow/dags:/opt/airflow/dags
@@ -192,6 +198,8 @@ services:
       AIRFLOW_GID: ${AIRFLOW_GID}
       MONGO_URI: mongodb://mongo:27017
       POSTGRES_HOST: postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: celery worker
     volumes:
       - ./airflow/dags:/opt/airflow/dags

@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: metar_raw
+    description: "Сырые METAR данные"
+    schema: public
+    tables:
+      - name: metar_raw_json
+        description: "Raw METAR JSON, без обработки."
+        loaded_at_field: inserted_at
+        freshness:
+          warn_after: {count: 60, period: minute}
+          error_after: {count: 180, period: minute}
+        columns:
+          - name: id
+            description: "Уникальный идентификатор записи"
+          - name: payload
+            description: "JSON с данными METAR"
