@@ -2,23 +2,23 @@
 METAR Data Pipeline — это пайплайн для автоматизированного сбора, хранения, трансформации и анализа метеорологических данных (METAR) для крупнейших аэропортов Российской Федерации.
 
 ## Архитектура пайплайна
-
+```
 METAR API
    ↓
 Collector (Python)
    ↓
-MongoDB (raw JSON)
+MongoDB
    ↓
 EL (Mongo → PostgreSQL)
    ↓
-PostgreSQL (raw / staging)
+PostgreSQL
    ↓
-dbt (STG → ODS → INT → DWH)
+dbt 
    ↓
-Elementary (Data Quality)
+Elementary
    ↓
 HTML Dashboard
-
+```
 ## Стек
 
 - Python 3.11
